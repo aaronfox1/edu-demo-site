@@ -1,0 +1,12 @@
+uuid: 8118726d-8478-486d-bab1-0c98c1f12b99
+langcode: en
+status: true
+dependencies: {  }
+id: feedback
+label: 'Contact EduDemo'
+recipients:
+  - hello@example.com
+reply: 'Thanks for reaching out to EduDemo. This is a demo site, so no one is really on the other end — but we appreciate the message!'
+weight: 0
+message: 'Your message has been sent.'
+redirect: ''

@@ -1,0 +1,189 @@
+<?php
+
+/**
+ * @file
+ * Install hooks for the EduDemo Demo Content module.
+ *
+ * Node content is not configuration, so it cannot travel through
+ * `drush config:export`. This module ships the demo pages as code and
+ * creates them on install, so any site built from this upstream that
+ * installs from the exported configuration gets the starter content.
+ */
+
+use Drupal\node\Entity\Node;
+
+/**
+ * Implements hook_install().
+ *
+ * Creates the landing (front) page, Courses page, and About page.
+ */
+function edudemo_demo_install() {
+  foreach (_edudemo_demo_pages() as $page) {
+    // Avoid creating duplicates if the module is re-installed.
+    $existing = \Drupal::entityTypeManager()
+      ->getStorage('node')
+      ->loadByProperties(['title' => $page['title']]);
+    if ($existing) {
+      continue;
+    }
+
+    Node::create([
+      'type' => 'page',
+      'title' => $page['title'],
+      'status' => 1,
+      'uid' => 1,
+      'body' => [
+        'value' => $page['body'],
+        'format' => 'full_html',
+      ],
+      'path' => [
+        'alias' => $page['alias'],
+        'pathauto' => 0,
+      ],
+    ])->save();
+  }
+}
+
+/**
+ * Implements hook_uninstall().
+ *
+ * Removes the demo pages created by this module.
+ */
+function edudemo_demo_uninstall() {
+  $titles = array_column(_edudemo_demo_pages(), 'title');
+  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  $nodes = $storage->loadByProperties(['title' => $titles]);
+  if ($nodes) {
+    $storage->delete($nodes);
+  }
+}
+
+/**
+ * Returns the demo page definitions.
+ *
+ * @return array[]
+ *   Each item has 'title', 'alias', and 'body' (full HTML) keys.
+ */
+function _edudemo_demo_pages() {
+  $landing = <<<HTML
+<section style="text-align:center;padding:3rem 1rem;background:#0b3d5c;color:#fff;border-radius:10px;">
+  <p style="text-transform:uppercase;letter-spacing:.15em;opacity:.85;margin:0 0 .5rem;">EduDemo Online Learning</p>
+  <h1 style="font-size:2.6rem;margin:.25rem 0 1rem;color:#fff;">Learn Without Limits</h1>
+  <p style="font-size:1.2rem;max-width:640px;margin:0 auto 1.75rem;opacity:.95;">
+    Flexible, expert-led courses that fit your life. Build in-demand skills at your own pace,
+    from anywhere, with EduDemo.
+  </p>
+  <a href="/courses" style="display:inline-block;background:#ffb703;color:#0b3d5c;font-weight:700;padding:.85rem 2rem;border-radius:6px;text-decoration:none;">Browse Courses</a>
+</section>
+
+<section style="padding:2.5rem 1rem;text-align:center;">
+  <h2>Why learners choose EduDemo</h2>
+  <p style="max-width:640px;margin:0 auto;color:#444;">
+    A modern learning platform designed around how people actually learn — practical, flexible, and supportive.
+  </p>
+</section>
+
+<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;padding:0 1rem 2.5rem;">
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <h3 style="margin-top:0;">📚 Expert-Led Courses</h3>
+    <p style="color:#555;">Learn from practitioners with real-world experience across dozens of subjects.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <h3 style="margin-top:0;">🕒 Learn at Your Pace</h3>
+    <p style="color:#555;">Self-paced lessons and on-demand video let you study whenever it suits you.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <h3 style="margin-top:0;">🎓 Earn Certificates</h3>
+    <p style="color:#555;">Complete a track and earn a shareable certificate to showcase your skills.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <h3 style="margin-top:0;">🤝 Community Support</h3>
+    <p style="color:#555;">Join discussion groups and get help from mentors and fellow learners.</p>
+  </div>
+</section>
+
+<section style="text-align:center;background:#f2f7fa;padding:2.5rem 1rem;border-radius:10px;">
+  <h2 style="margin-top:0;">Ready to start learning?</h2>
+  <p style="color:#444;margin-bottom:1.5rem;">Join thousands of learners building their futures with EduDemo.</p>
+  <a href="/contact" style="display:inline-block;background:#0b3d5c;color:#fff;font-weight:700;padding:.85rem 2rem;border-radius:6px;text-decoration:none;">Get in Touch</a>
+</section>
+
+<footer style="text-align:center;color:#777;padding:2rem 1rem 0;font-size:.9rem;">
+  <p>EduDemo is a fictional demo platform built to showcase a Drupal site on Pantheon. No real courses are offered.</p>
+</footer>
+HTML;
+
+  $courses = <<<HTML
+<h1>Courses</h1>
+<p style="max-width:680px;color:#444;">
+  Explore a sample of our catalog. These are placeholder courses for demonstration purposes only.
+</p>
+
+<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:1.5rem;">
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Beginner · 6 weeks</p>
+    <h3 style="margin:.35rem 0;">Introduction to Web Development</h3>
+    <p style="color:#555;">Build your first websites with HTML, CSS, and JavaScript fundamentals.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Intermediate · 8 weeks</p>
+    <h3 style="margin:.35rem 0;">Data Science Foundations</h3>
+    <p style="color:#555;">Work with real datasets using Python, pandas, and data visualization.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Beginner · 4 weeks</p>
+    <h3 style="margin:.35rem 0;">Digital Marketing Essentials</h3>
+    <p style="color:#555;">Learn SEO, content strategy, and social media from the ground up.</p>
+  </div>
+  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
+    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Advanced · 10 weeks</p>
+    <h3 style="margin:.35rem 0;">UX Design Studio</h3>
+    <p style="color:#555;">Design user-centered products through research, prototyping, and testing.</p>
+  </div>
+</div>
+HTML;
+
+  $about = <<<HTML
+<h1>About EduDemo</h1>
+<p style="max-width:680px;color:#444;font-size:1.1rem;">
+  EduDemo is a fictional online learning platform created to demonstrate a Drupal website
+  running on Pantheon. It shows how an educational organization might present its courses,
+  mission, and contact information.
+</p>
+
+<h2>Our Mission</h2>
+<p style="max-width:680px;color:#444;">
+  We believe education should be accessible, flexible, and practical. Our mock platform imagines
+  a world where anyone, anywhere can pick up a new skill and put it to work.
+</p>
+
+<h2>What We (Pretend to) Offer</h2>
+<ul style="max-width:680px;color:#444;">
+  <li>Self-paced courses across technology, business, and design</li>
+  <li>Certificates of completion for finished tracks</li>
+  <li>A supportive community of learners and mentors</li>
+</ul>
+
+<p style="max-width:680px;color:#666;font-style:italic;">
+  This is a demonstration site. All content is placeholder text and no real courses are offered.
+</p>
+HTML;
+
+  return [
+    [
+      'title' => 'EduDemo — Learn Without Limits',
+      'alias' => '/home',
+      'body' => $landing,
+    ],
+    [
+      'title' => 'Courses',
+      'alias' => '/courses',
+      'body' => $courses,
+    ],
+    [
+      'title' => 'About EduDemo',
+      'alias' => '/about',
+      'body' => $about,
+    ],
+  ];
+}

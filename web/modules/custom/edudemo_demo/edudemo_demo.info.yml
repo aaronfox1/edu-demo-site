@@ -1,0 +1,5 @@
+name: 'EduDemo Demo Content'
+type: module
+description: 'Ships the EduDemo demo pages (landing/front page, About, Courses) and main-menu links for the educational-platform demo upstream. Enable to populate a fresh site with starter content.'
+package: 'EduDemo'
+core_version_requirement: '^10 || ^11'

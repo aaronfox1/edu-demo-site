@@ -95,3 +95,28 @@
 
 # Ignore .env files as they are personal
 #/.env
+
+
+# ------------------------------------------------------------------
+# EduDemo custom upstream — additions
+# ------------------------------------------------------------------
+# NOTE: The following are already ignored by the rules above and are
+# repeated here only for clarity of intent:
+#   - /vendor/                     (Composer-managed, rebuilt on deploy)
+#   - /web/sites/*/files           (user-generated content/uploads)
+#   - /web/sites/*/settings.local.php (local-only, may hold secrets)
+#
+# web/sites/default/settings.php is INTENTIONALLY COMMITTED (Pantheon
+# convention). In this upstream it contains no secrets — it only
+# includes settings.pantheon.php and an optional settings.local.php.
+
+# Local SQLite databases used for ephemeral config/content builds.
+*.sqlite
+*.sqlite-journal
+*.db
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+/.idea/
+/.vscode/

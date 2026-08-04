@@ -1,22 +1,93 @@
-# Composer-enabled Drupal template
+# EduDemo — Drupal Educational Platform (Pantheon Custom Upstream)
 
-This is Pantheon's recommended starting point for forking new [Drupal](https://www.drupal.org/) upstreams
-that work with the Platform's Integrated Composer build process. It is also the
-Platform's standard Drupal 9 upstream.
+**EduDemo** is a simple, fictional mock demo website for an online educational
+platform, built with **Drupal 11** and packaged as a **Pantheon Custom
+Upstream**. It exists to demonstrate what a course-catalog / education marketing
+site looks like when spun up from a reusable upstream on Pantheon.
 
-Unlike with earlier Pantheon upstreams, files such as Drupal Core that you are
-unlikely to adjust while building sites are not in the main branch of the 
-repository. Instead, they are referenced as dependencies that are installed by
-Composer.
+> ⚠️ This is a demonstration site. All content is placeholder text — no real
+> courses are offered and no real people are on the other end of the contact
+> form.
 
-For more information and detailed installation guides, please visit the
-Integrated Composer Pantheon documentation: https://pantheon.io/docs/integrated-composer
+## What this is
 
-## Contributing
+This repository is a **Pantheon Custom Upstream**: a shared starting point that
+one or more Pantheon sites can be created from. It is based on Pantheon's
+official [`drupal-composer-managed`](https://github.com/pantheon-upstreams/drupal-composer-managed)
+upstream, with the Drupal core constraint moved up to Drupal 11 and a small
+amount of demo configuration and content layered on top.
 
-Contributions are welcome in the form of GitHub pull requests. However, the
-`pantheon-upstreams/drupal-composer-managed` repository is a mirror that does not
-directly accept pull requests.
+To learn how custom upstreams work and how to register one, see Pantheon's guide:
+**https://docs.pantheon.io/guides/custom-upstream/create-custom-upstream**
 
-Instead, to propose a change, please fork [pantheon-systems/drupal-composer-managed](https://github.com/pantheon-systems/drupal-composer-managed)
-and submit a PR to that repository.
+## What the demo includes
+
+- **Landing page** (set as the site front page) with a hero, value proposition,
+  four feature highlights, calls-to-action, and a footer.
+- **Courses** page with several placeholder course entries.
+- **About** page describing the (fictional) platform and its mission.
+- **Contact** page using Drupal core's built-in site-wide contact form.
+- A **main navigation** menu linking Home / Courses / About / Contact.
+- The **Olivero** front-end theme (Drupal core default).
+
+## How it is structured
+
+This upstream keeps the Pantheon `drupal-composer-managed` layout intact:
+
+| Path | Purpose |
+| --- | --- |
+| `composer.json` | Composer project definition (Drupal 11, Drush, Pantheon integrations). |
+| `pantheon.upstream.yml` | Pantheon platform settings (PHP 8.3, MariaDB 10.6, build step). |
+| `config/` | Exported Drupal **configuration** (`drush config:export` output). On Pantheon this is the config sync directory. |
+| `web/` | Drupal web root (core and contrib are Composer-managed and git-ignored). |
+| `web/modules/custom/edudemo_demo/` | Small custom module that ships the demo **content** (pages, aliases) and the main-menu links. |
+
+### Configuration vs. content
+
+Drupal's `config:export` captures **configuration** (site settings, content
+types, fields, the contact form, menus, blocks, theme, permissions) as YAML in
+`config/`. It does **not** capture **content** (nodes), because nodes are not
+configuration. So the demo pages are shipped by the `edudemo_demo` module, which
+creates them in its install hook. A new site gets the pages when that module is
+installed — most directly by installing the site **from the existing
+configuration** (`edudemo_demo` is enabled in `config/core.extension.yml`).
+
+## Deploying a site from this upstream
+
+1. Register this repository as a custom upstream (see the manual step below).
+2. Create a new site on Pantheon using the **EduDemo** upstream.
+3. Install Drupal on the new site **from existing configuration** so the exported
+   `config/` and the `edudemo_demo` demo content are applied.
+
+## Keeping core up to date
+
+The official Pantheon Drupal upstream is tracked as a git remote so future core
+updates can be merged in:
+
+```bash
+git remote -v
+# pantheon-drupal-composer-managed  https://github.com/pantheon-upstreams/drupal-composer-managed.git
+```
+
+When you want to pull in upstream improvements:
+
+```bash
+git fetch pantheon-drupal-composer-managed
+git merge pantheon-drupal-composer-managed/main
+```
+
+## Required manual follow-up (not automatable)
+
+Connecting this repository as a custom upstream must be done in the Pantheon
+Dashboard and cannot be scripted:
+
+> **Pantheon Dashboard → Organization → Upstreams → Add Upstream**, pointed at
+> `https://github.com/aaronfox1/edu-demo-site`.
+
+## Local development
+
+There is intentionally **no persistent local environment** for this repo. The
+demo configuration and content were generated once in a throwaway Drupal
+instance and captured into `config/` and the `edudemo_demo` module; that
+environment was then discarded. Standard Pantheon/Drupal workflows (Multidev,
+DDEV, Lando, etc.) can be used if local work is ever needed.
