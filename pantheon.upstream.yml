@@ -5,7 +5,9 @@ enforce_https: transitional
 php_version: 8.3
 database:
   version: 10.6
-drush_version: 12
+# Global Drush on Pantheon maxes out at 10; Drupal 11 operations use the
+# site-local Drush 13 installed via Composer (drush/drush in composer.json).
+drush_version: 10
 build_step: true
 protected_web_paths:
   - /private/
