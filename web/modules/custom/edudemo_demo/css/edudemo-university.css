@@ -1,0 +1,187 @@
+/**
+ * @file
+ * EduDemo University — global theme layer over Olivero.
+ *
+ * Gives the site a collegiate navy/gold identity and provides the reusable
+ * .eu-* components used by the landing, Academics, and About pages.
+ */
+
+:root {
+  --eu-navy: #0d2340;
+  --eu-navy-deep: #081a30;
+  --eu-gold: #c1922f;
+  --eu-gold-bright: #e2b64f;
+  --eu-ink: #1c2733;
+  --eu-muted: #5c6b7a;
+  --eu-alt: #f4f7fb;
+  --eu-border: #e2e9f1;
+  --eu-serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, Cambria, serif;
+}
+
+html { scroll-behavior: smooth; }
+body { color: var(--eu-ink); overflow-x: hidden; }
+
+/* ---- Collegiate headings + chrome ------------------------------------- */
+h1, h2, h3,
+.page-title,
+.site-branding__name a {
+  font-family: var(--eu-serif);
+  letter-spacing: -0.01em;
+  hyphens: none;
+  overflow-wrap: normal;
+}
+
+.site-header__inner { border-top: 4px solid var(--eu-gold); }
+.site-branding__name a { color: var(--eu-navy); font-weight: 700; }
+.site-branding__slogan { color: var(--eu-muted); font-style: italic; }
+
+.primary-nav__menu-link { font-weight: 600; }
+.primary-nav__menu-link:hover { color: var(--eu-navy); }
+
+.site-footer { background-color: var(--eu-navy-deep); }
+.site-footer, .site-footer a { color: #d7e2ef; }
+.site-footer a:hover { color: var(--eu-gold-bright); }
+
+/* On the front page the hero replaces the node title + the narrow container. */
+.path-frontpage .block-page-title-block { display: none; }
+.path-frontpage .main-content__container { max-width: none; padding: 0; }
+.path-frontpage .main-content { padding-top: 0; }
+.path-frontpage .node__content { margin-top: 0; }
+
+/* ---- Layout helpers --------------------------------------------------- */
+.eu-bleed { margin-left: calc(50% - 50vw); margin-right: calc(50% - 50vw); }
+.eu-wrap { max-width: 1140px; margin: 0 auto; padding: 0 24px; }
+.eu-section { padding: 72px 0; }
+.eu-section--alt { background: var(--eu-alt); }
+.eu-kicker {
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--eu-gold);
+  margin: 0 0 0.75rem;
+}
+.eu-section .eu-head { text-align: center; max-width: 720px; margin: 0 auto 2.5rem; }
+.eu-section .eu-head h2 { font-size: 2.1rem; margin: 0 0 0.75rem; color: var(--eu-navy); }
+.eu-section .eu-head p { color: var(--eu-muted); font-size: 1.08rem; margin: 0; }
+
+/* ---- Buttons ---------------------------------------------------------- */
+.eu-btn {
+  display: inline-block;
+  padding: 0.85rem 1.9rem;
+  border-radius: 4px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 0.12s ease, background-color 0.12s ease, color 0.12s ease;
+}
+.eu-btn--gold { background: var(--eu-gold); color: #1a1205; }
+.eu-btn--gold:hover { background: var(--eu-gold-bright); transform: translateY(-2px); color: #1a1205; }
+.eu-btn--ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.6); }
+.eu-btn--ghost:hover { background: rgba(255,255,255,0.12); color: #fff; transform: translateY(-2px); }
+.eu-btn--navy { background: var(--eu-navy); color: #fff; }
+.eu-btn--navy:hover { background: var(--eu-navy-deep); color: #fff; transform: translateY(-2px); }
+
+/* ---- Hero ------------------------------------------------------------- */
+.eu-hero {
+  position: relative;
+  color: #fff;
+  background:
+    radial-gradient(1200px 500px at 78% -10%, rgba(193,146,47,0.28), transparent 60%),
+    linear-gradient(135deg, #12315a 0%, var(--eu-navy) 45%, var(--eu-navy-deep) 100%);
+  overflow: hidden;
+}
+.eu-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1.4px);
+  background-size: 22px 22px;
+  opacity: 0.6;
+}
+.eu-hero__inner { position: relative; padding: 96px 24px 84px; max-width: 1140px; margin: 0 auto; }
+.eu-hero__eyebrow { color: var(--eu-gold-bright); }
+.eu-hero h1 {
+  color: #fff;
+  font-size: clamp(2.4rem, 5vw, 3.9rem);
+  line-height: 1.05;
+  margin: 0 0 1.1rem;
+  max-width: 15ch;
+}
+.eu-hero__lead { font-size: 1.22rem; line-height: 1.6; max-width: 40rem; color: #e7eef7; margin: 0 0 2rem; }
+.eu-hero__cta { display: flex; flex-wrap: wrap; gap: 1rem; }
+
+/* Stat strip inside the hero */
+.eu-stats {
+  position: relative;
+  border-top: 1px solid rgba(255,255,255,0.15);
+  background: rgba(255,255,255,0.04);
+}
+.eu-stats__grid {
+  max-width: 1140px; margin: 0 auto; padding: 28px 24px;
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; text-align: center;
+}
+.eu-stats__num { font-family: var(--eu-serif); font-size: 2.1rem; font-weight: 700; color: var(--eu-gold-bright); line-height: 1; }
+.eu-stats__label { color: #cdd8e6; font-size: 0.9rem; margin-top: 0.35rem; }
+
+/* ---- Card grids ------------------------------------------------------- */
+.eu-grid { display: grid; gap: 1.5rem; }
+.eu-grid--3 { grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); }
+.eu-grid--4 { grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+
+.eu-card {
+  background: #fff;
+  border: 1px solid var(--eu-border);
+  border-radius: 10px;
+  padding: 1.6rem;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, border-color 0.14s ease;
+}
+.eu-card:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(13,35,64,0.12); border-color: #cdd9e8; }
+.eu-card__icon {
+  width: 46px; height: 46px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--eu-alt); font-size: 1.4rem; margin-bottom: 1rem;
+}
+.eu-card h3 { margin: 0 0 0.5rem; font-size: 1.22rem; color: var(--eu-navy); }
+.eu-card p { margin: 0 0 0.85rem; color: var(--eu-muted); }
+.eu-card__link { color: var(--eu-gold); font-weight: 700; text-decoration: none; }
+.eu-card__link:hover { color: var(--eu-navy); }
+.eu-card__meta {
+  text-transform: uppercase; letter-spacing: 0.09em; font-size: 0.72rem;
+  font-weight: 700; color: var(--eu-gold); margin: 0 0 0.35rem;
+}
+
+/* Feature (why choose) — simpler, borderless */
+.eu-feature { text-align: left; }
+.eu-feature h3 { color: var(--eu-navy); margin: 0.6rem 0 0.4rem; font-size: 1.15rem; }
+.eu-feature p { color: var(--eu-muted); margin: 0; }
+.eu-feature__icon { font-size: 1.8rem; }
+
+/* News + events */
+.eu-news { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.5rem; }
+.eu-news__date {
+  display: inline-block; background: var(--eu-navy); color: #fff;
+  font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em;
+  padding: 0.3rem 0.7rem; border-radius: 4px; margin-bottom: 0.8rem;
+}
+
+/* ---- CTA band --------------------------------------------------------- */
+.eu-cta {
+  color: #fff; text-align: center;
+  background:
+    radial-gradient(800px 300px at 20% 120%, rgba(193,146,47,0.30), transparent 60%),
+    linear-gradient(120deg, var(--eu-navy) 0%, var(--eu-navy-deep) 100%);
+}
+.eu-cta__inner { padding: 76px 24px; max-width: 720px; margin: 0 auto; }
+.eu-cta h2 { color: #fff; font-size: 2.2rem; margin: 0 0 0.8rem; }
+.eu-cta p { color: #d7e2ef; font-size: 1.1rem; margin: 0 0 1.8rem; }
+
+/* ---- Page intro (Academics / About) ---------------------------------- */
+.eu-lede { font-size: 1.25rem; line-height: 1.6; color: var(--eu-muted); max-width: 44rem; }
+.eu-disclaimer { color: #8494a4; font-style: italic; }
+
+/* ---- Responsive ------------------------------------------------------- */
+@media (max-width: 720px) {
+  .eu-stats__grid { grid-template-columns: repeat(2, 1fr); gap: 1.5rem; }
+  .eu-section { padding: 52px 0; }
+  .eu-hero__inner { padding: 68px 24px 60px; }
+}

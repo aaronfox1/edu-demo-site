@@ -2,9 +2,9 @@ _core:
   default_config_hash: ijfbzDTN4CbE7Sr-6ubWzy_t1vH4OtU1doNCLssVz-4
 langcode: en
 uuid: 6e8d35c1-7f5b-47fe-8abd-8f369cc4016e
-name: EduDemo
+name: 'EduDemo University'
 mail: admin@example.com
-slogan: 'Learn Without Limits'
+slogan: 'Learn. Discover. Lead.'
 page:
   403: ''
   404: ''

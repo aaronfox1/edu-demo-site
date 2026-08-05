@@ -5,7 +5,7 @@ edudemo_demo.home:
   weight: -10
 
 edudemo_demo.courses:
-  title: 'Courses'
+  title: 'Academics'
   menu_name: main
   url: 'internal:/courses'
   weight: -8
@@ -17,7 +17,7 @@ edudemo_demo.about:
   weight: -6
 
 edudemo_demo.contact:
-  title: 'Contact'
+  title: 'Visit & Apply'
   menu_name: main
   url: 'internal:/contact'
   weight: -4

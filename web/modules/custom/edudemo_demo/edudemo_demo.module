@@ -2,38 +2,72 @@
 
 /**
  * @file
- * EduDemo demo content: landing/front page, Courses, and About pages.
+ * EduDemo University demo: landing/front page, Academics, and About pages,
+ * plus the global "university" CSS layer over Olivero.
  *
  * Node content is not configuration, so it cannot travel through
  * `drush config:export`. This module ships the demo pages as code and creates
- * them via edudemo_demo_create_pages().
+ * (or refreshes) them via edudemo_demo_create_pages().
  *
  * On a site installed from exported configuration, this module can be enabled
  * during config import — before the `page` node type's `body` field has been
- * attached — so the pages may first be created with an empty body. Running
- * edudemo_demo_create_pages() again (see the module README) repairs them once
- * the field exists. The function is idempotent and safe to run any number of
- * times.
+ * attached — so a page may first be created with an empty body. Running
+ * edudemo_demo_create_pages() again (see the module README) repairs it once the
+ * field exists. The function is idempotent and safe to run any number of times.
  */
 
 use Drupal\node\Entity\Node;
 
 /**
- * Creates the demo pages, or repairs any that are missing their body.
+ * Implements hook_page_attachments().
+ *
+ * Loads the EduDemo University styling on the front end (Olivero) only, so the
+ * admin theme (Claro) is left untouched.
+ */
+function edudemo_demo_page_attachments(array &$attachments) {
+  if (\Drupal::theme()->getActiveTheme()->getName() === 'olivero') {
+    $attachments['#attached']['library'][] = 'edudemo_demo/university';
+  }
+}
+
+/**
+ * Creates the demo pages, or syncs existing ones to the definitions below.
+ *
+ * Pages are matched by their path alias (a stable key), so titles and bodies
+ * can be updated on redeploy. Safe to run repeatedly.
  */
 function edudemo_demo_create_pages() {
   // Make sure freshly-imported page/body field definitions are visible.
   \Drupal::service('entity_field.manager')->clearCachedFieldDefinitions();
+  $alias_manager = \Drupal::service('path_alias.manager');
 
-  $storage = \Drupal::entityTypeManager()->getStorage('node');
+  // The Standard profile adds its own "Home" link to the main menu; this
+  // module already provides one (edudemo_demo.home), so remove the duplicate.
+  $menu_links = \Drupal::entityTypeManager()->getStorage('menu_link_content')
+    ->loadByProperties(['menu_name' => 'main', 'title' => 'Home']);
+  foreach ($menu_links as $link) {
+    $link->delete();
+  }
+
   foreach (_edudemo_demo_pages() as $page) {
-    $existing = $storage->loadByProperties(['title' => $page['title']]);
-    $node = $existing ? reset($existing) : NULL;
+    $node = NULL;
+    $path = $alias_manager->getPathByAlias($page['alias']);
+    if (preg_match('#^/node/(\d+)$#', $path, $m)) {
+      $node = Node::load($m[1]);
+    }
 
     if ($node) {
-      // Repair a page that was created without its body (field-ordering race).
-      if ($node->hasField('body') && (string) $node->get('body')->value === '') {
+      $changed = FALSE;
+      if ($node->getTitle() !== $page['title']) {
+        $node->setTitle($page['title']);
+        $changed = TRUE;
+      }
+      // Keep the body in sync with the definition (also repairs empty bodies).
+      if ($node->hasField('body') && (string) $node->get('body')->value !== $page['body']) {
         $node->set('body', ['value' => $page['body'], 'format' => 'full_html']);
+        $changed = TRUE;
+      }
+      if ($changed) {
         $node->save();
       }
       continue;
@@ -64,122 +98,257 @@ function edudemo_demo_create_pages() {
  */
 function _edudemo_demo_pages() {
   $landing = <<<HTML
-<section style="text-align:center;padding:3rem 1rem;background:#0b3d5c;color:#fff;border-radius:10px;">
-  <p style="text-transform:uppercase;letter-spacing:.15em;opacity:.85;margin:0 0 .5rem;">EduDemo Online Learning</p>
-  <h1 style="font-size:2.6rem;margin:.25rem 0 1rem;color:#fff;">Learn Without Limits</h1>
-  <p style="font-size:1.2rem;max-width:640px;margin:0 auto 1.75rem;opacity:.95;">
-    Flexible, expert-led courses that fit your life. Build in-demand skills at your own pace,
-    from anywhere, with EduDemo.
-  </p>
-  <a href="/courses" style="display:inline-block;background:#ffb703;color:#0b3d5c;font-weight:700;padding:.85rem 2rem;border-radius:6px;text-decoration:none;">Browse Courses</a>
-</section>
+<div class="eu-home">
 
-<section style="padding:2.5rem 1rem;text-align:center;">
-  <h2>Why learners choose EduDemo</h2>
-  <p style="max-width:640px;margin:0 auto;color:#444;">
-    A modern learning platform designed around how people actually learn — practical, flexible, and supportive.
-  </p>
-</section>
+  <section class="eu-hero eu-bleed">
+    <div class="eu-hero__inner">
+      <p class="eu-kicker eu-hero__eyebrow">EduDemo University &middot; Est. 1897</p>
+      <h1>Where curiosity becomes impact.</h1>
+      <p class="eu-hero__lead">
+        A community of 24,000 learners, researchers, and doers. Explore more than
+        120 programs across ten colleges — on our historic city campus and online
+        from anywhere in the world.
+      </p>
+      <div class="eu-hero__cta">
+        <a class="eu-btn eu-btn--gold" href="/contact">Apply Now</a>
+        <a class="eu-btn eu-btn--ghost" href="/courses">Explore Academics</a>
+      </div>
+    </div>
+    <div class="eu-stats">
+      <div class="eu-stats__grid">
+        <div><div class="eu-stats__num">24,000</div><div class="eu-stats__label">Students</div></div>
+        <div><div class="eu-stats__num">120+</div><div class="eu-stats__label">Degree Programs</div></div>
+        <div><div class="eu-stats__num">1:12</div><div class="eu-stats__label">Faculty Ratio</div></div>
+        <div><div class="eu-stats__num">Top 50</div><div class="eu-stats__label">Public University</div></div>
+      </div>
+    </div>
+  </section>
 
-<section style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.25rem;padding:0 1rem 2.5rem;">
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <h3 style="margin-top:0;">📚 Expert-Led Courses</h3>
-    <p style="color:#555;">Learn from practitioners with real-world experience across dozens of subjects.</p>
-  </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <h3 style="margin-top:0;">🕒 Learn at Your Pace</h3>
-    <p style="color:#555;">Self-paced lessons and on-demand video let you study whenever it suits you.</p>
-  </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <h3 style="margin-top:0;">🎓 Earn Certificates</h3>
-    <p style="color:#555;">Complete a track and earn a shareable certificate to showcase your skills.</p>
-  </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <h3 style="margin-top:0;">🤝 Community Support</h3>
-    <p style="color:#555;">Join discussion groups and get help from mentors and fellow learners.</p>
-  </div>
-</section>
+  <section class="eu-section eu-bleed">
+    <div class="eu-wrap">
+      <div class="eu-head">
+        <p class="eu-kicker">Academics</p>
+        <h2>Ten colleges. Endless directions.</h2>
+        <p>From engineering to the arts, find a path taught by faculty who are leaders in their fields.</p>
+      </div>
+      <div class="eu-grid eu-grid--3">
+        <div class="eu-card">
+          <div class="eu-card__icon">🛠️</div>
+          <h3>Engineering &amp; Computing</h3>
+          <p>Software, AI, robotics, and the systems that power modern life.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+        <div class="eu-card">
+          <div class="eu-card__icon">📈</div>
+          <h3>Business</h3>
+          <p>Finance, marketing, and entrepreneurship for a global economy.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+        <div class="eu-card">
+          <div class="eu-card__icon">🎨</div>
+          <h3>Arts &amp; Sciences</h3>
+          <p>The liberal-arts core, from literature to laboratory science.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+        <div class="eu-card">
+          <div class="eu-card__icon">🩺</div>
+          <h3>Health Sciences</h3>
+          <p>Nursing, public health, and the future of patient care.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+        <div class="eu-card">
+          <div class="eu-card__icon">🏛️</div>
+          <h3>Education</h3>
+          <p>Prepare to teach, lead, and shape the next generation.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+        <div class="eu-card">
+          <div class="eu-card__icon">🌱</div>
+          <h3>Environment &amp; Design</h3>
+          <p>Sustainability, architecture, and human-centered design.</p>
+          <a class="eu-card__link" href="/courses">Explore programs →</a>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<section style="text-align:center;background:#f2f7fa;padding:2.5rem 1rem;border-radius:10px;">
-  <h2 style="margin-top:0;">Ready to start learning?</h2>
-  <p style="color:#444;margin-bottom:1.5rem;">Join thousands of learners building their futures with EduDemo.</p>
-  <a href="/contact" style="display:inline-block;background:#0b3d5c;color:#fff;font-weight:700;padding:.85rem 2rem;border-radius:6px;text-decoration:none;">Get in Touch</a>
-</section>
+  <section class="eu-section eu-section--alt eu-bleed">
+    <div class="eu-wrap">
+      <div class="eu-head">
+        <p class="eu-kicker">Why EduDemo</p>
+        <h2>An education that goes further.</h2>
+      </div>
+      <div class="eu-grid eu-grid--4">
+        <div class="eu-feature">
+          <div class="eu-feature__icon">👩‍🏫</div>
+          <h3>World-Class Faculty</h3>
+          <p>Learn from researchers and practitioners invested in your success.</p>
+        </div>
+        <div class="eu-feature">
+          <div class="eu-feature__icon">💻</div>
+          <h3>On-Campus &amp; Online</h3>
+          <p>Study full-time, part-time, or fully online — the choice is yours.</p>
+        </div>
+        <div class="eu-feature">
+          <div class="eu-feature__icon">🔬</div>
+          <h3>Hands-On Research</h3>
+          <p>Work alongside faculty on real research from your very first year.</p>
+        </div>
+        <div class="eu-feature">
+          <div class="eu-feature__icon">🌍</div>
+          <h3>Global Community</h3>
+          <p>Students from 90+ countries and a worldwide alumni network.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-<footer style="text-align:center;color:#777;padding:2rem 1rem 0;font-size:.9rem;">
-  <p>EduDemo is a fictional demo platform built to showcase a Drupal site on Pantheon. No real courses are offered.</p>
-</footer>
+  <section class="eu-section eu-bleed">
+    <div class="eu-wrap">
+      <div class="eu-head">
+        <p class="eu-kicker">News &amp; Events</p>
+        <h2>Life at EduDemo.</h2>
+      </div>
+      <div class="eu-news">
+        <div class="eu-card">
+          <span class="eu-news__date">OCT 18</span>
+          <h3>Fall Open House</h3>
+          <p>Tour campus, meet faculty, and sit in on a class to see EduDemo up close.</p>
+          <a class="eu-card__link" href="/about">Read more →</a>
+        </div>
+        <div class="eu-card">
+          <span class="eu-news__date">NOV 02</span>
+          <h3>AI Research Institute Opens</h3>
+          <p>A new center dedicated to responsible artificial intelligence and its impact.</p>
+          <a class="eu-card__link" href="/about">Read more →</a>
+        </div>
+        <div class="eu-card">
+          <span class="eu-news__date">NOV 15</span>
+          <h3>Homecoming Weekend</h3>
+          <p>Three days of reunions, athletics, and celebration for students and alumni.</p>
+          <a class="eu-card__link" href="/about">Read more →</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="eu-cta eu-bleed">
+    <div class="eu-cta__inner">
+      <h2>Your future starts here.</h2>
+      <p>Applications for the fall semester are now open. Join the next class of EduDemo Owls.</p>
+      <a class="eu-btn eu-btn--gold" href="/contact">Start Your Application</a>
+    </div>
+  </section>
+
+  <section class="eu-section eu-bleed">
+    <div class="eu-wrap">
+      <p class="eu-disclaimer">
+        EduDemo University is a fictional institution built to demonstrate a Drupal
+        site on Pantheon. No real programs are offered and no real applications are accepted.
+      </p>
+    </div>
+  </section>
+
+</div>
 HTML;
 
-  $courses = <<<HTML
-<h1>Courses</h1>
-<p style="max-width:680px;color:#444;">
-  Explore a sample of our catalog. These are placeholder courses for demonstration purposes only.
-</p>
+  $academics = <<<HTML
+<div class="eu-page">
+  <p class="eu-kicker">Academics</p>
+  <p class="eu-lede">
+    Explore a sample of the degree programs offered across EduDemo University's ten
+    colleges. These are placeholder programs for demonstration purposes only.
+  </p>
 
-<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.25rem;margin-top:1.5rem;">
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Beginner · 6 weeks</p>
-    <h3 style="margin:.35rem 0;">Introduction to Web Development</h3>
-    <p style="color:#555;">Build your first websites with HTML, CSS, and JavaScript fundamentals.</p>
+  <div class="eu-grid eu-grid--3" style="margin-top:2.25rem;">
+    <div class="eu-card">
+      <p class="eu-card__meta">B.S. · 4 years</p>
+      <h3>Computer Science</h3>
+      <p>Algorithms, systems, artificial intelligence, and software engineering.</p>
+    </div>
+    <div class="eu-card">
+      <p class="eu-card__meta">B.S. · 4 years</p>
+      <h3>Data Science &amp; Analytics</h3>
+      <p>Statistics, machine learning, and data visualization for a data-driven world.</p>
+    </div>
+    <div class="eu-card">
+      <p class="eu-card__meta">B.B.A. · 4 years</p>
+      <h3>Business Administration</h3>
+      <p>Management, finance, marketing, and strategy for modern organizations.</p>
+    </div>
+    <div class="eu-card">
+      <p class="eu-card__meta">B.S.N. · 4 years</p>
+      <h3>Nursing</h3>
+      <p>Clinical practice, patient care, and the science of public health.</p>
+    </div>
+    <div class="eu-card">
+      <p class="eu-card__meta">B.F.A. · 4 years</p>
+      <h3>User Experience Design</h3>
+      <p>Research, prototyping, and human-centered design of digital products.</p>
+    </div>
+    <div class="eu-card">
+      <p class="eu-card__meta">B.A. · 4 years</p>
+      <h3>Environmental Studies</h3>
+      <p>Sustainability, policy, and the stewardship of natural systems.</p>
+    </div>
   </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Intermediate · 8 weeks</p>
-    <h3 style="margin:.35rem 0;">Data Science Foundations</h3>
-    <p style="color:#555;">Work with real datasets using Python, pandas, and data visualization.</p>
-  </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Beginner · 4 weeks</p>
-    <h3 style="margin:.35rem 0;">Digital Marketing Essentials</h3>
-    <p style="color:#555;">Learn SEO, content strategy, and social media from the ground up.</p>
-  </div>
-  <div style="border:1px solid #e4e4e4;border-radius:10px;padding:1.5rem;">
-    <p style="text-transform:uppercase;font-size:.75rem;letter-spacing:.1em;color:#0b3d5c;margin:0;">Advanced · 10 weeks</p>
-    <h3 style="margin:.35rem 0;">UX Design Studio</h3>
-    <p style="color:#555;">Design user-centered products through research, prototyping, and testing.</p>
-  </div>
+
+  <p class="eu-disclaimer" style="margin-top:2.25rem;">
+    All programs listed here are fictional and offered for demonstration only.
+  </p>
 </div>
 HTML;
 
   $about = <<<HTML
-<h1>About EduDemo</h1>
-<p style="max-width:680px;color:#444;font-size:1.1rem;">
-  EduDemo is a fictional online learning platform created to demonstrate a Drupal website
-  running on Pantheon. It shows how an educational organization might present its courses,
-  mission, and contact information.
-</p>
+<div class="eu-page">
+  <p class="eu-kicker">About</p>
+  <p class="eu-lede">
+    EduDemo University is a fictional institution created to demonstrate a Drupal
+    website running on Pantheon. It shows how a university might present its
+    academics, mission, and admissions online.
+  </p>
 
-<h2>Our Mission</h2>
-<p style="max-width:680px;color:#444;">
-  We believe education should be accessible, flexible, and practical. Our mock platform imagines
-  a world where anyone, anywhere can pick up a new skill and put it to work.
-</p>
+  <h2>Our Mission</h2>
+  <p style="max-width:44rem;color:#5c6b7a;">
+    Founded (in this demo) in 1897, EduDemo University is dedicated to teaching,
+    research, and public service. We imagine a place where rigorous scholarship and
+    hands-on learning prepare students to lead in a changing world.
+  </p>
 
-<h2>What We (Pretend to) Offer</h2>
-<ul style="max-width:680px;color:#444;">
-  <li>Self-paced courses across technology, business, and design</li>
-  <li>Certificates of completion for finished tracks</li>
-  <li>A supportive community of learners and mentors</li>
-</ul>
+  <h2>By the Numbers</h2>
+  <ul style="max-width:44rem;color:#5c6b7a;">
+    <li>24,000 undergraduate and graduate students</li>
+    <li>Ten colleges offering 120+ degree programs</li>
+    <li>A 1:12 faculty-to-student ratio</li>
+    <li>Students and alumni from more than 90 countries</li>
+  </ul>
 
-<p style="max-width:680px;color:#666;font-style:italic;">
-  This is a demonstration site. All content is placeholder text and no real courses are offered.
-</p>
+  <h2>Visit Us</h2>
+  <p style="max-width:44rem;color:#5c6b7a;">
+    Schedule a campus tour or request information through our
+    <a href="/contact">Visit &amp; Apply</a> page.
+  </p>
+
+  <p class="eu-disclaimer" style="margin-top:2rem;">
+    This is a demonstration site. All content is placeholder text and no real
+    programs, statistics, or admissions are represented.
+  </p>
+</div>
 HTML;
 
   return [
     [
-      'title' => 'EduDemo — Learn Without Limits',
+      'title' => 'Where curiosity becomes impact',
       'alias' => '/home',
       'body' => $landing,
     ],
     [
-      'title' => 'Courses',
+      'title' => 'Academics & Programs',
       'alias' => '/courses',
-      'body' => $courses,
+      'body' => $academics,
     ],
     [
-      'title' => 'About EduDemo',
+      'title' => 'About EduDemo University',
       'alias' => '/about',
       'body' => $about,
     ],
