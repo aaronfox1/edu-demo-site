@@ -56,8 +56,29 @@ configuration** (`edudemo_demo` is enabled in `config/core.extension.yml`).
 
 1. Register this repository as a custom upstream (see the manual step below).
 2. Create a new site on Pantheon using the **EduDemo** upstream.
-3. Install Drupal on the new site **from existing configuration** so the exported
-   `config/` and the `edudemo_demo` demo content are applied.
+3. Install Drupal and apply the exported configuration and demo content. Run
+   these against the target environment (`dev` shown here) with terminus:
+
+   ```bash
+   # Install core, then import the EduDemo configuration.
+   terminus drush <site>.dev -- site:install standard -y
+   terminus drush <site>.dev -- config:set system.site uuid \
+     $(grep '^uuid:' config/system.site.yml | awk '{print $2}') -y
+   terminus drush <site>.dev -- config:import -y
+
+   # Populate the demo page bodies (see "Configuration vs. content" below),
+   # then rebuild caches.
+   terminus drush <site>.dev -- php:eval 'edudemo_demo_create_pages();'
+   terminus drush <site>.dev -- cr
+   ```
+
+   Notes:
+   - The `config:set ... uuid` step aligns the new site's UUID with the exported
+     config so `config:import` will run (Drupal refuses to import config from a
+     different site UUID).
+   - `edudemo_demo` is enabled by the config import. Because it can be enabled
+     before the page `body` field is attached, the pages may first be created
+     empty; `edudemo_demo_create_pages()` fills them in and is safe to re-run.
 
 ## Keeping core up to date
 
